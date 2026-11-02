@@ -1,11 +1,34 @@
 [
   {
-    "name": "example",
-    "title": "TODO(author): the first document this industry must produce",
-    "for_each": "select gen_random_uuid() as id, 'Example' as name",
-    "file": "name",
+    "name": "register-of-injuries",
+    "title": "Register of injuries",
+    "for_each": "select id, code from sites order by code",
+    "file": "code",
     "sections": [
-      { "title": "Details", "sql": "select 'replace me' as item, $1::text as record_id" }
+      { "title": "Injuries recorded at this workplace", "note": "NSW Workplace Injury Management and Workers Compensation Act 1998 s 63 and the Victorian WIRC Act 2013 require a register at each workplace. Notifiable incidents are kept for at least 5 years (WHS Act s 38(7), HSWA s 57).", "sql": "select ref, to_char(occurred_at, 'YYYY-MM-DD HH24:MI') as occurred, worker, role, location, nature, body_part, mechanism, reported_by, registered_on from v_register where site_id = $1 order by occurred_at" }
+    ]
+  },
+  {
+    "name": "return-to-work-plan",
+    "title": "Return to work plan",
+    "for_each": "select id, ref from rtw_plans where status <> 'ended' order by ref",
+    "file": "ref",
+    "sections": [
+      { "title": "Worker and claim", "sql": "select p.ref as plan, c.worker, c.site, coalesce(c.claim_number, c.ref) as claim, c.nature, c.injured_on, c.rtw_coordinator from rtw_plans p join v_claims c on c.id = p.claim_id where p.id = $1" },
+      { "title": "The certificate this plan follows", "sql": "select c.capacity, c.cert_hours as hours_a_week, c.cert_to as certificate_to, c.restrictions from rtw_plans p join v_claims c on c.id = p.claim_id where p.id = $1" },
+      { "title": "Duties, hours and review", "sql": "select p.duties, p.hours_per_week, p.starts_on, p.review_on, p.status, p.agreed_on, p.agreed_by from rtw_plans p where p.id = $1" }
+    ]
+  },
+  {
+    "name": "claim-summary",
+    "title": "Claim summary",
+    "for_each": "select id, ref from claims where status = 'open' order by ref",
+    "file": "ref",
+    "sections": [
+      { "title": "Claim", "sql": "select ref, coalesce(claim_number, '') as claim_number, worker, site, jurisdiction, injured_on, nature, body_part, liability, liability_on, case_manager, treating_doctor from v_claims where id = $1" },
+      { "title": "Certificates", "sql": "select ref, from_on, to_on, capacity, hours_per_week, restrictions, doctor from certificates where claim_id = $1 order by from_on" },
+      { "title": "Deadlines", "sql": "select item, due_on, standing, rule from v_deadlines where claim_id = $1 order by due_at" },
+      { "title": "Payments", "sql": "select p.ref, p.kind, p.period_from, p.period_to, p.paid_on, p.payee, p.amount_cents, c.currency, p.reimbursed_on from payments p join v_claims c on c.id = p.claim_id where p.claim_id = $1 order by p.paid_on" }
     ]
   }
 ]

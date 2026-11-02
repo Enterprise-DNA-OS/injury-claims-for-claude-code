@@ -13,12 +13,13 @@ That layer used to be the whole product, because talking to a database was hard.
 
 ## What you give up
 
-- **A visual board.** Stages are a table you ask about, not cards you drag.
-- **A phone app.** It runs where Claude Code runs.
+- **A form for supervisors.** A supervisor reporting an injury from the floor on a phone needs a form; here the coordinator records it from the incident report. Enterprise DNA builds that form into a customer's version.
+- **The insurer feed.** Solv sends new injuries to icare and takes claim numbers back. Here the claim number is recorded from the insurer's email or portal.
+- **Regulator submission files.** Self-insurers send the regulator files in its own format. The records are all here; the file format is part of a custom build.
 - **A vendor help desk.** This is open source. Enterprise DNA supports the installed version for businesses that want someone to call.
 
 ## Who this fits
 
-Small teams who already use Claude Code, or who would rather learn to ask than learn another interface. If your team needs a screen to look at all day, keep Solv. If you need the answers more than the screens, this is cheaper, faster and yours.
+A return to work coordinator or a small claims team who would rather ask than click, at an insured employer, a self-insurer or an ACC Accredited Employer. If dozens of supervisors log injuries into it every day and nobody will ask Claude Code anything, keep Solv or have the form built. If you need the answers more than the screens, this is cheaper, faster and yours.
 
 Installed and run for you: https://enterprisedna.co/omni/instead-of/solv

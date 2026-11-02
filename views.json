@@ -2,12 +2,50 @@
   {
     "name": "week",
     "title": "This week",
-    "subtitle": "Injury Claims for Claude Code: what needs attention, rendered by npm run view",
+    "subtitle": "What needs a person: legal deadlines first, then certificates, plans, money and quiet claims",
     "sections": [
       {
         "title": "Needs attention",
-        "note": "TODO(author): point this at the industry's attention view (overdue, stuck, quiet).",
-        "sql": "select 'replace me' as item, 'TODO(author)' as why"
+        "note": "The legal deadlines from /attention. Every line names the rule that set it.",
+        "sql": "select case when standing = 'deemed' then 'cover deemed' else item end as item, ref, worker, site, to_char(due_at, 'YYYY-MM-DD HH24:MI') as due, standing from v_deadlines where basis = 'law' and standing in ('overdue', 'deemed', 'due soon') order by due_at"
+      },
+      {
+        "title": "Certificates and plans",
+        "sql": "select ref, worker, site, coalesce(capacity, '') as capacity, cert_to, cert_standing, coalesce(plan_ref, '') as plan, coalesce(plan_status, '') as plan_status, plan_review_on from v_claims where status = 'open' and (cert_standing in ('expired', 'expiring', 'no certificate') or (plan_status = 'agreed' and plan_review_on < current_date + 7)) order by cert_to nulls first"
+      },
+      {
+        "title": "Open claims",
+        "sql": "select ref, worker, site, nature, liability, capacity, cert_to, week_no as week from v_claims where status = 'open' order by site, ref"
+      }
+    ]
+  },
+  {
+    "name": "deadlines",
+    "title": "Statutory deadlines",
+    "subtitle": "Every clock the law starts on an injury or a claim, and how each was met",
+    "sections": [
+      {
+        "title": "Open",
+        "sql": "select item, ref, worker, site, to_char(due_at, 'YYYY-MM-DD HH24:MI') as due, standing, rule from v_deadlines where standing not in ('done', 'done late') order by due_at"
+      },
+      {
+        "title": "Met late in the last 12 months",
+        "sql": "select item, ref, worker, site, due_on, to_char(done_at, 'YYYY-MM-DD') as done from v_deadlines where standing = 'done late' and due_at >= now() - interval '12 months' order by due_at desc"
+      }
+    ]
+  },
+  {
+    "name": "money",
+    "title": "Money",
+    "subtitle": "Paid on claims, waiting to come back from the insurer, and estimated",
+    "sections": [
+      {
+        "title": "By site, this year",
+        "sql": "select site, currency, count(*)::int as claims, sum(paid_cents)::int as paid_cents, sum(awaiting_reimbursement_cents)::int as waiting_cents, sum(coalesce(estimate_cents, 0))::int as estimate_cents from v_claims where received_on >= date_trunc('year', current_date) group by site, currency order by site"
+      },
+      {
+        "title": "Waiting on reimbursement",
+        "sql": "select ref, claim_ref, worker, insurer, paid_on, amount_cents, currency, days, standing from v_reimbursements where reimbursed_on is null order by paid_on"
       }
     ]
   }
